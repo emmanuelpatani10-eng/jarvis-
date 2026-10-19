@@ -1,0 +1,100 @@
+
+import subprocess
+from datetime import datetime
+
+
+def speak(text):
+    print("JARVIS:", text)
+    try:
+        subprocess.run(
+            ["termux-tts-speak", text],
+            check=False
+        )
+    except FileNotFoundError:
+        print("Please install Termux:API.")
+
+
+def listen():
+    print("\nJARVIS is listening... Speak now!")
+
+    try:
+        result = subprocess.run(
+            ["termux-speech-to-text"],
+            capture_output=True,
+            text=True,
+            timeout=60
+        )
+
+        command = result.stdout.strip()
+        print("You:", command)
+        return command.lower()
+
+    except FileNotFoundError:
+        speak("Please install Termux API first.")
+        return ""
+
+    except subprocess.TimeoutExpired:
+        speak("Listening timed out. Please try again.")
+        return ""
+
+
+def main():
+    speak("Hello sir. I am Jarvis. How can I help you?")
+
+    while True:
+        command = listen()
+
+        if not command:
+            continue
+
+        # Greeting
+        if any(word in command for word in [
+            "hello", "hi jarvis", "హలో", "నమస్కారం"
+        ]):
+            speak("Hello sir. I am ready.")
+
+        # Current time
+        elif any(word in command for word in [
+            "time", "సమయం", "టైం"
+        ]):
+            now = datetime.now().strftime("%I:%M %p")
+            speak("Sir, the time is " + now)
+
+        # Current date
+        elif any(word in command for word in [
+            "date", "తేదీ"
+        ]):
+            today = datetime.now().strftime("%d %B %Y")
+            speak("Today's date is " + today)
+
+        # Assistant name
+        elif any(word in command for word in [
+            "your name", "నీ పేరు", "మీ పేరు"
+        ]):
+            speak("My name is Jarvis, your AI assistant.")
+
+        # Help
+        elif any(word in command for word in [
+            "help", "సహాయం"
+        ]):
+            speak(
+                "You can ask me the time, date, "
+                "my name, or say stop to exit."
+            )
+
+        # Exit
+        elif any(word in command for word in [
+            "stop", "exit", "quit", "ఆపు", "ఆపేయి"
+        ]):
+            speak("Goodbye sir. Jarvis is shutting down.")
+            break
+
+        # Unknown command
+        else:
+            speak(
+                "Sorry sir, I do not understand that command yet."
+            )
+
+
+if __name__ == "__main__":
+    main()
